@@ -224,15 +224,18 @@
     let apiDocs = {
         version1: { name: '', content: '' },
         version2: { name: '', content: '' }
-    };
-
-    let comments = {};
+    };    let comments = {};
     let currentView = 'split';
     let currentCommentLine = null;
     let currentCommentVersion = null;
     let selectedLines = {};
     let currentCommentViewerLine = null;
     let currentCommentViewerVersion = null;
+      // Store all available versions
+    let availableVersions = new Set(['v1.2.0', 'v1.3.0']);
+    
+    // Store documentation content for all versions
+    let documentationStore = {};
 
     // Sample data for demonstration
     const sampleDocs = {
@@ -296,19 +299,22 @@ Creates a new user.
   "email": "string",
   "password": "string"
 }`
-    };
-
-    // Initialize
+    };    // Initialize
     document.addEventListener('DOMContentLoaded', () => {
         // Set up event listeners
         document.getElementById('loadDocsBtn').addEventListener('click', openDocModal);
         document.getElementById('viewToggle').addEventListener('click', toggleView);
-        document.getElementById('version1Input').addEventListener('input', updateVersionNames);
-        document.getElementById('version2Input').addEventListener('input', updateVersionNames);
-        
-        // Load sample data by default
+        document.getElementById('version1Input').addEventListener('change', updateVersionNames);
+        document.getElementById('version2Input').addEventListener('change', updateVersionNames);        // Load sample data by default
         loadSampleData();
         saveDocumentation();
+        
+        // Initialize documentation store with sample data
+        documentationStore['v1.2.0'] = sampleDocs['v1.2.0'];
+        documentationStore['v1.3.0'] = sampleDocs['v1.3.0'];
+        
+        // Initialize version dropdowns
+        updateVersionDropdowns();
     });
 
     function openDocModal() {
@@ -344,16 +350,23 @@ Creates a new user.
         document.getElementById('docContent2').value = sampleDocs['v1.3.0'];
         document.getElementById('docVersion1').value = 'v1.2.0';
         document.getElementById('docVersion2').value = 'v1.3.0';
-    }
-
-    function saveDocumentation() {
+    }    function saveDocumentation() {
         const content1 = document.getElementById('docContent1').value.trim();
         const content2 = document.getElementById('docContent2').value.trim();
         const version1 = document.getElementById('docVersion1').value.trim() || 'Version 1';
         const version2 = document.getElementById('docVersion2').value.trim() || 'Version 2';
         
+        // Store documentation content in the documentation store
+        documentationStore[version1] = content1;
+        documentationStore[version2] = content2;
+        
         apiDocs.version1 = { name: version1, content: content1 };
         apiDocs.version2 = { name: version2, content: content2 };
+        
+        // Add new versions to available versions and update dropdowns
+        availableVersions.add(version1);
+        availableVersions.add(version2);
+        updateVersionDropdowns();
         
         // Update input fields
         document.getElementById('version1Input').value = version1;
@@ -361,17 +374,71 @@ Creates a new user.
         
         updateComparison();
         closeDocModal();
-    }
-
-    function updateVersionNames() {
+        showNotification('Documentation loaded successfully!', 'success');
+    }function updateVersionNames() {
         const version1 = document.getElementById('version1Input').value;
         const version2 = document.getElementById('version2Input').value;
+          // Check if we have stored documentation for these versions
+        if (documentationStore[version1]) {
+            apiDocs.version1 = { name: version1, content: documentationStore[version1] };
+        } else if (sampleDocs[version1]) {
+            apiDocs.version1 = { name: version1, content: sampleDocs[version1] };
+        } else {
+            apiDocs.version1.name = version1;
+        }
         
-        apiDocs.version1.name = version1;
-        apiDocs.version2.name = version2;
+        if (documentationStore[version2]) {
+            apiDocs.version2 = { name: version2, content: documentationStore[version2] };
+        } else if (sampleDocs[version2]) {
+            apiDocs.version2 = { name: version2, content: sampleDocs[version2] };
+        } else {
+            apiDocs.version2.name = version2;
+        }
         
         document.getElementById('version1Title').textContent = `Version ${version1}`;
         document.getElementById('version2Title').textContent = `Version ${version2}`;
+        
+        // Clear selected lines when switching versions
+        selectedLines = {};
+        
+        // Update the comparison view with new content
+        updateComparison();
+          showNotification(`Switched to ${version1} vs ${version2}`, 'success');
+    }
+    
+    function updateVersionDropdowns() {
+        const version1Select = document.getElementById('version1Input');
+        const version2Select = document.getElementById('version2Input');
+        
+        // Store current selections
+        const currentVersion1 = version1Select.value;
+        const currentVersion2 = version2Select.value;
+        
+        // Clear existing options
+        version1Select.innerHTML = '';
+        version2Select.innerHTML = '';
+        
+        // Sort versions and add to both dropdowns
+        const sortedVersions = Array.from(availableVersions).sort();
+        sortedVersions.forEach(version => {
+            const option1 = document.createElement('option');
+            option1.value = version;
+            option1.textContent = version;
+            version1Select.appendChild(option1);
+            
+            const option2 = document.createElement('option');
+            option2.value = version;
+            option2.textContent = version;
+            version2Select.appendChild(option2);
+        });
+        
+        // Restore selections if they still exist
+        if (sortedVersions.includes(currentVersion1)) {
+            version1Select.value = currentVersion1;
+        }
+        if (sortedVersions.includes(currentVersion2)) {
+            version2Select.value = currentVersion2;
+        }
     }
 
     function updateComparison() {
