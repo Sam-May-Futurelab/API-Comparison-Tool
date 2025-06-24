@@ -8,143 +8,55 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">    <style>
-        * {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        }
-        
-        .mono-font {
-            font-family: 'JetBrains Mono', 'Fira Code', 'Monaco', 'Cascadia Code', monospace;
-        }
-
-        .gradient-bg {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-
-        .glass-effect {
-            backdrop-filter: blur(10px);
-            background: rgba(255, 255, 255, 0.95);
-        }
-
-        .highlight-added {
-            background-color: #d4f4dd;
-        }
-
-        .highlight-removed {
-            background-color: #ffd4d4;
-        }
-
-        .highlight-changed {
-            background-color: #fff3cd;
-        }
-
-        .line-number {
-            font-family: 'JetBrains Mono', monospace;
-            user-select: none;
-        }
-
-        .comment-indicator {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            background-color: #3b82f6;
-            color: white;
-            border-radius: 50%;
-            font-size: 10px;
-            text-align: center;
-            line-height: 16px;
-            margin-left: 4px;
-            cursor: pointer;
-        }
-
-        .diff-line {
-            font-family: 'JetBrains Mono', monospace;
-            white-space: pre-wrap;
-            word-break: break-all;
-        }
-
-        .unified-diff-marker {
-            font-weight: bold;
-            margin-right: 8px;
-        }
-
-        .added-marker {
-            color: #16a34a;
-        }
-
-        .removed-marker {
-            color: #dc2626;
-        }
-
-        .comment-popup {
-            max-height: 300px;
-            min-width: 250px;
-            z-index: 100;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #f1f5f9;
-            border-radius: 4px;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
-        }        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
-
-        .notification {
-            animation: slideInRight 0.3s ease-out;
-        }
-
-        .notification.hide {
-            animation: slideOutRight 0.3s ease-in forwards;
-        }
-
-        @keyframes slideInRight {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">    <script>
+        // Tailwind config to enable custom animations
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'inter': ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+                        'mono': ['JetBrains Mono', 'Fira Code', 'Monaco', 'Cascadia Code', 'monospace']
+                    },
+                    animation: {
+                        'slide-in-right': 'slideInRight 0.3s ease-out',
+                        'slide-out-right': 'slideOutRight 0.3s ease-in forwards'
+                    },
+                    keyframes: {
+                        slideInRight: {
+                            '0%': { transform: 'translateX(100%)', opacity: '0' },
+                            '100%': { transform: 'translateX(0)', opacity: '1' }
+                        },
+                        slideOutRight: {
+                            '0%': { transform: 'translateX(0)', opacity: '1' },
+                            '100%': { transform: 'translateX(100%)', opacity: '0' }
+                        }
+                    }
+                }
             }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        @keyframes slideOutRight {
-            from {
-                transform: translateX(0);
-                opacity: 1;
-            }
-            to {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-        }
-    </style>
+        };
+    </script>
 </head>
-<body class="gradient-bg min-h-screen">
+<body class="font-inter bg-gradient-to-br from-indigo-500 via-purple-500 to-purple-600 min-h-screen">
 <!-- Floating Header -->
-<div class="fixed top-0 left-0 right-0 glass-effect shadow-lg z-50 p-4 border-b border-white/20">
+<div class="fixed top-0 left-0 right-0 backdrop-blur-md bg-white/95 shadow-lg z-50 p-4 border-b border-white/20">
     <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
         <h1 class="text-2xl font-bold text-gray-800">API Documentation Comparison</h1>
         <div class="flex flex-wrap items-center gap-4">
             <button id="loadDocsBtn" class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-lg text-sm hover:from-purple-600 hover:to-pink-600 transition-all duration-200 font-medium">
                 Load Documentation
-            </button>
-            <div class="flex items-center gap-2">
+            </button><div class="flex items-center gap-2">
                 <label class="text-sm font-medium text-gray-700">Version 1:</label>
-                <input id="version1Input" type="text" value="v1.2.0" class="border border-gray-300 rounded-lg px-3 py-1 text-sm w-20 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <select id="version1Input" class="border border-gray-300 rounded-lg px-3 py-1 text-sm w-24 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white">
+                    <option value="v1.2.0">v1.2.0</option>
+                    <option value="v1.3.0">v1.3.0</option>
+                </select>
             </div>
             <div class="flex items-center gap-2">
                 <label class="text-sm font-medium text-gray-700">Version 2:</label>
-                <input id="version2Input" type="text" value="v1.3.0" class="border border-gray-300 rounded-lg px-3 py-1 text-sm w-20 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <select id="version2Input" class="border border-gray-300 rounded-lg px-3 py-1 text-sm w-24 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white">
+                    <option value="v1.2.0">v1.2.0</option>
+                    <option value="v1.3.0">v1.3.0</option>
+                </select>
             </div>
             <button id="viewToggle" class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-4 py-2 rounded-lg text-sm hover:from-blue-600 hover:to-indigo-700 transition-all duration-200 font-medium">
                 Switch to Unified View
@@ -164,7 +76,7 @@
                     Edit
                 </button>
             </div>
-            <div id="version1Content" class="overflow-auto max-h-[calc(100vh-250px)] custom-scrollbar">
+            <div id="version1Content" class="overflow-auto max-h-[calc(100vh-250px)] scrollbar-thin scrollbar-thumb-slate-400 scrollbar-track-slate-100 hover:scrollbar-thumb-slate-500">
                 <div class="p-4 text-center text-gray-500">
                     <p>Click "Load Documentation" to add your API documentation</p>
                 </div>
@@ -179,7 +91,7 @@
                     Edit
                 </button>
             </div>
-            <div id="version2Content" class="overflow-auto max-h-[calc(100vh-250px)] custom-scrollbar">
+            <div id="version2Content" class="overflow-auto max-h-[calc(100vh-250px)] scrollbar-thin scrollbar-thumb-slate-400 scrollbar-track-slate-100 hover:scrollbar-thumb-slate-500">
                 <div class="p-4 text-center text-gray-500">
                     <p>Click "Load Documentation" to add your API documentation</p>
                 </div>
@@ -193,7 +105,7 @@
             <div class="bg-gradient-to-r from-slate-800 to-slate-900 text-white p-4">
                 <h2 class="font-semibold text-lg">Unified Diff View</h2>
             </div>
-            <div id="unifiedContent" class="overflow-auto max-h-[calc(100vh-250px)] custom-scrollbar">
+            <div id="unifiedContent" class="overflow-auto max-h-[calc(100vh-250px)] scrollbar-thin scrollbar-thumb-slate-400 scrollbar-track-slate-100 hover:scrollbar-thumb-slate-500">
                 <div class="p-4 text-center text-gray-500">
                     <p>Load documentation to see unified diff</p>
                 </div>
@@ -236,7 +148,7 @@
                     <label class="font-medium text-gray-700">Version 1:</label>
                     <input id="docVersion1" type="text" value="v1.2.0" class="border border-gray-300 rounded-lg px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
-                <textarea id="docContent1" class="w-full border border-gray-300 rounded-lg p-3 h-64 resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent mono-font text-sm"
+                <textarea id="docContent1" class="w-full border border-gray-300 rounded-lg p-3 h-64 resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
                           placeholder="Paste your API documentation here..."></textarea>
             </div>
             
@@ -246,7 +158,7 @@
                     <label class="font-medium text-gray-700">Version 2:</label>
                     <input id="docVersion2" type="text" value="v1.3.0" class="border border-gray-300 rounded-lg px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
-                <textarea id="docContent2" class="w-full border border-gray-300 rounded-lg p-3 h-64 resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent mono-font text-sm"
+                <textarea id="docContent2" class="w-full border border-gray-300 rounded-lg p-3 h-64 resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
                           placeholder="Paste your API documentation here..."></textarea>
             </div>
         </div>
@@ -273,7 +185,7 @@
             <p class="text-sm text-gray-600" id="commentViewerInfo"></p>
         </div>
         
-        <div id="commentsList" class="space-y-3 max-h-96 overflow-y-auto custom-scrollbar">
+        <div id="commentsList" class="space-y-3 max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-400 scrollbar-track-slate-100 hover:scrollbar-thumb-slate-500">
             <!-- Comments will be populated here -->
         </div>
         
@@ -289,7 +201,7 @@
 </div>
 
 <!-- Custom Notification -->
-<div id="customNotification" class="fixed top-4 right-4 bg-gradient-to-r from-orange-500 to-red-500 text-white px-6 py-4 rounded-lg shadow-2xl border border-orange-400 z-[60] max-w-sm notification hidden">
+<div id="customNotification" class="fixed top-4 right-4 bg-gradient-to-r from-orange-500 to-red-500 text-white px-6 py-4 rounded-lg shadow-2xl border border-orange-400 z-[60] max-w-sm animate-slide-in-right hidden">
     <div class="flex items-center gap-3">
         <div class="flex-shrink-0">
             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -887,12 +799,13 @@ Creates a new user.
         input.value = '';
         openCommentViewer(currentCommentViewerVersion, currentCommentViewerLine); // Refresh the view
         updateComparison();
-    }
-
-    function deleteComment(commentId) {
+    }    function deleteComment(commentId) {
+        // Convert commentId to number for comparison since it comes as string from HTML onclick
+        const numericCommentId = parseFloat(commentId);
+        
         Object.keys(comments).forEach(version => {
             Object.keys(comments[version]).forEach(lineNum => {
-                comments[version][lineNum] = comments[version][lineNum].filter(comment => comment.id !== commentId);
+                comments[version][lineNum] = comments[version][lineNum].filter(comment => comment.id !== numericCommentId);
                 if (comments[version][lineNum].length === 0) {
                     delete comments[version][lineNum];
                 }
@@ -901,7 +814,8 @@ Creates a new user.
         
         openCommentViewer(currentCommentViewerVersion, currentCommentViewerLine); // Refresh the view
         updateComparison();
-    }    function closeCommentViewer() {
+        showNotification('Comment deleted successfully!', 'success');
+    }function closeCommentViewer() {
         document.getElementById('commentViewerModal').classList.add('hidden');
         document.getElementById('newCommentInput').value = '';
     }
