@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">    <title>API Documentation Comparison</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/default.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">    <style>
+        * {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        .mono-font {
+            font-family: 'JetBrains Mono', 'Fira Code', 'Monaco', 'Cascadia Code', monospace;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .glass-effect {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        .highlight-added {
+            background-color: #d4f4dd;
+        }
+
+        .highlight-removed {
+            background-color: #ffd4d4;
+        }
+
+        .highlight-changed {
+            background-color: #fff3cd;
+        }
+
+        .line-number {
+            font-family: 'JetBrains Mono', monospace;
+            user-select: none;
+        }
+
+        .comment-indicator {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            background-color: #3b82f6;
+            color: white;
+            border-radius: 50%;
+            font-size: 10px;
+            text-align: center;
+            line-height: 16px;
+            margin-left: 4px;
+            cursor: pointer;
+        }
+
+        .diff-line {
+            font-family: 'JetBrains Mono', monospace;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .unified-diff-marker {
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        .added-marker {
+            color: #16a34a;
+        }
+
+        .removed-marker {
+            color: #dc2626;
+        }
+
+        .comment-popup {
+            max-height: 300px;
+            min-width: 250px;
+            z-index: 100;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        .notification {
+            animation: slideInRight 0.3s ease-out;
+        }
+
+        .notification.hide {
+            animation: slideOutRight 0.3s ease-in forwards;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen">
+<!-- Floating Header -->
+<div class="fixed top-0 left-0 right-0 glass-effect shadow-lg z-50 p-4 border-b border-white/20">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+        <h1 class="text-2xl font-bold text-gray-800">API Documentation Comparison</h1>
+        <div class="flex flex-wrap items-center gap-4">
+            <button id="loadDocsBtn" class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-lg text-sm hover:from-purple-600 hover:to-pink-600 transition-all duration-200 font-medium">
+                Load Documentation
+            </button>
+            <div class="flex items-center gap-2">
+                <label class="text-sm font-medium text-gray-700">Version 1:</label>
+                <input id="version1Input" type="text" value="v1.2.0" class="border border-gray-300 rounded-lg px-3 py-1 text-sm w-20 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            </div>
+            <div class="flex items-center gap-2">
+                <label class="text-sm font-medium text-gray-700">Version 2:</label>
+                <input id="version2Input" type="text" value="v1.3.0" class="border border-gray-300 rounded-lg px-3 py-1 text-sm w-20 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            </div>
+            <button id="viewToggle" class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-4 py-2 rounded-lg text-sm hover:from-blue-600 hover:to-indigo-700 transition-all duration-200 font-medium">
+                Switch to Unified View
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="pt-[180px] md:pt-32 pb-8 flex flex-col gap-4 w-full px-4 md:px-0 md:w-11/12 lg:w-5/6 xl:w-3/4 m-auto">
+    <div id="splitView" class="flex flex-col gap-4 md:gap-6 md:flex-row justify-between">
+        <!-- Version 1 Panel -->
+        <div class="bg-white/95 backdrop-blur-sm rounded-xl shadow-xl overflow-hidden max-h-90% h-fit w-full md:w-[49%] border border-white/20">
+            <div class="bg-gradient-to-r from-slate-800 to-slate-900 text-white p-4 flex justify-between items-center">
+                <h2 class="font-semibold text-lg" id="version1Title">Version 1.2.0</h2>
+                <button onclick="loadDocumentation(1)" class="text-xs bg-white/20 hover:bg-white/30 px-3 py-1 rounded-lg transition-colors">
+                    Edit
+                </button>
+            </div>
+            <div id="version1Content" class="overflow-auto max-h-[calc(100vh-250px)] custom-scrollbar">
+                <div class="p-4 text-center text-gray-500">
+                    <p>Click "Load Documentation" to add your API documentation</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Version 2 Panel -->
+        <div class="bg-white/95 backdrop-blur-sm rounded-xl shadow-xl overflow-hidden w-full md:w-[49%] border border-white/20">
+            <div class="bg-gradient-to-r from-slate-800 to-slate-900 text-white p-4 flex justify-between items-center">
+                <h2 class="font-semibold text-lg" id="version2Title">Version 1.3.0</h2>
+                <button onclick="loadDocumentation(2)" class="text-xs bg-white/20 hover:bg-white/30 px-3 py-1 rounded-lg transition-colors">
+                    Edit
+                </button>
+            </div>
+            <div id="version2Content" class="overflow-auto max-h-[calc(100vh-250px)] custom-scrollbar">
+                <div class="p-4 text-center text-gray-500">
+                    <p>Click "Load Documentation" to add your API documentation</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Unified View -->
+    <div id="unifiedView" class="mx-auto w-[99%] md:w-[90%] hidden">
+        <div class="bg-white/95 backdrop-blur-sm rounded-xl shadow-xl overflow-hidden border border-white/20">
+            <div class="bg-gradient-to-r from-slate-800 to-slate-900 text-white p-4">
+                <h2 class="font-semibold text-lg">Unified Diff View</h2>
+            </div>
+            <div id="unifiedContent" class="overflow-auto max-h-[calc(100vh-250px)] custom-scrollbar">
+                <div class="p-4 text-center text-gray-500">
+                    <p>Load documentation to see unified diff</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <button class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 hover:scale-105 border border-emerald-400 hover:shadow-lg active:scale-100 px-4 py-2 rounded-lg text-white font-medium w-fit ml-auto mb-10 transition-all duration-200"
+            onclick="openCommentModal()">Add Comment
+    </button>
+</div>
+
+<!-- Comment Modal -->
+<div id="commentModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl border border-gray-200">
+        <h3 class="text-xl font-semibold text-gray-800 mb-2">Add Comment</h3>
+        <span class="text-xs mb-2 text-gray-500">Versions & Lines</span>
+        <p class="text-sm text-gray-600 mb-4" id="commentVersionInfo"></p>
+        <textarea id="commentInput" class="w-full border border-gray-300 rounded-lg p-3 h-24 resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Enter your comment..."></textarea>
+        <div class="flex justify-end gap-3 mt-4">
+            <button onclick="closeCommentModal()" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium">Cancel</button>
+            <button onclick="saveComment()" class="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg hover:from-blue-600 hover:to-indigo-700 transition-all duration-200 font-medium">Save</button>
+        </div>
+    </div>
+</div>
+
+<!-- Documentation Loading Modal -->
+<div id="docModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl max-w-4xl w-full p-6 shadow-2xl border border-gray-200 max-h-[90vh] overflow-hidden">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-semibold text-gray-800">Load API Documentation</h3>
+            <button onclick="closeDocModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
+            <!-- Version 1 -->
+            <div class="flex flex-col">
+                <div class="flex items-center gap-2 mb-3">
+                    <label class="font-medium text-gray-700">Version 1:</label>
+                    <input id="docVersion1" type="text" value="v1.2.0" class="border border-gray-300 rounded-lg px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                <textarea id="docContent1" class="w-full border border-gray-300 rounded-lg p-3 h-64 resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent mono-font text-sm"
+                          placeholder="Paste your API documentation here..."></textarea>
+            </div>
+            
+            <!-- Version 2 -->
+            <div class="flex flex-col">
+                <div class="flex items-center gap-2 mb-3">
+                    <label class="font-medium text-gray-700">Version 2:</label>
+                    <input id="docVersion2" type="text" value="v1.3.0" class="border border-gray-300 rounded-lg px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                <textarea id="docContent2" class="w-full border border-gray-300 rounded-lg p-3 h-64 resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent mono-font text-sm"
+                          placeholder="Paste your API documentation here..."></textarea>
+            </div>
+        </div>
+        
+        <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 pt-4 border-t border-gray-200">
+            <button onclick="loadSampleData()" class="text-sm text-blue-600 hover:text-blue-800 underline">Load Sample Data</button>
+            <div class="flex gap-3">
+                <button onclick="closeDocModal()" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium">Cancel</button>
+                <button onclick="saveDocumentation()" class="px-6 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all duration-200 font-medium">Load Documentation</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Comment Viewer Modal -->
+<div id="commentViewerModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl max-w-lg w-full p-6 shadow-2xl border border-gray-200 max-h-[80vh] overflow-hidden">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-semibold text-gray-800">Comments</h3>
+            <button onclick="closeCommentViewer()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+        </div>
+        
+        <div class="mb-4">
+            <p class="text-sm text-gray-600" id="commentViewerInfo"></p>
+        </div>
+        
+        <div id="commentsList" class="space-y-3 max-h-96 overflow-y-auto custom-scrollbar">
+            <!-- Comments will be populated here -->
+        </div>
+        
+        <div class="mt-4 pt-4 border-t border-gray-200">
+            <div class="flex gap-2">
+                <input id="newCommentInput" type="text" placeholder="Add a comment..." 
+                       class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <button onclick="addNewComment()" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm font-medium">
+                    Add
+                </button>
+            </div>
+        </div>    </div>
+</div>
+
+<!-- Custom Notification -->
+<div id="customNotification" class="fixed top-4 right-4 bg-gradient-to-r from-orange-500 to-red-500 text-white px-6 py-4 rounded-lg shadow-2xl border border-orange-400 z-[60] max-w-sm notification hidden">
+    <div class="flex items-center gap-3">
+        <div class="flex-shrink-0">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M8.485 3.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 3.495zM10 6a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 6zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+            </svg>
+        </div>
+        <div class="flex-1">
+            <p class="font-medium text-sm" id="notificationText">Please select line numbers by clicking on them first.</p>
+        </div>
+        <button onclick="hideNotification()" class="flex-shrink-0 text-white/80 hover:text-white">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+            </svg>
+        </button>
+    </div>
+</div>
+
+<script>
+    // Documentation storage
+    let apiDocs = {
+        version1: { name: '', content: '' },
+        version2: { name: '', content: '' }
+    };
+
+    let comments = {};
+    let currentView = 'split';
+    let currentCommentLine = null;
+    let currentCommentVersion = null;
+    let selectedLines = {};
+    let currentCommentViewerLine = null;
+    let currentCommentViewerVersion = null;
+
+    // Sample data for demonstration
+    const sampleDocs = {
+        'v1.2.0': `# User API
+
+## GET /users
+Returns a list of users with pagination support.
+
+### Parameters
+- limit (optional): Maximum number of users to return (default: 10)
+- page (optional): Page number for pagination (default: 1)
+- sort (optional): Sort field (name, email, created_at)
+
+### Response
+{
+  "users": [
+    {
+      "id": 1,
+      "name": "John Doe",
+      "email": "john@example.com",
+      "created_at": "2023-01-01T00:00:00Z"
+    }
+  ],
+  "total": 100,
+  "page": 1,
+  "limit": 10
+}`,
+        'v1.3.0': `# User API
+
+## GET /users
+Returns a list of users with pagination and filtering support.
+
+### Parameters
+- limit (optional): Maximum number of users to return (default: 10)
+- page (optional): Page number for pagination (default: 1)
+- sort (optional): Sort field (name, email, created_at)
+- filter (optional): Filter by user status (active, inactive)
+
+### Response
+{
+  "users": [
+    {
+      "id": 1,
+      "name": "John Doe",
+      "email": "john@example.com",
+      "created_at": "2023-01-01T00:00:00Z",
+      "status": "active"
+    }
+  ],
+  "total": 100,
+  "page": 1,
+  "limit": 10
+}
+
+## POST /users
+Creates a new user.
+
+### Request Body
+{
+  "name": "string",
+  "email": "string",
+  "password": "string"
+}`
+    };
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+        // Set up event listeners
+        document.getElementById('loadDocsBtn').addEventListener('click', openDocModal);
+        document.getElementById('viewToggle').addEventListener('click', toggleView);
+        document.getElementById('version1Input').addEventListener('input', updateVersionNames);
+        document.getElementById('version2Input').addEventListener('input', updateVersionNames);
+        
+        // Load sample data by default
+        loadSampleData();
+        saveDocumentation();
+    });
+
+    function openDocModal() {
+        const modal = document.getElementById('docModal');
+        const docContent1 = document.getElementById('docContent1');
+        const docContent2 = document.getElementById('docContent2');
+        const docVersion1 = document.getElementById('docVersion1');
+        const docVersion2 = document.getElementById('docVersion2');
+        
+        // Pre-fill with current content if available
+        docContent1.value = apiDocs.version1.content;
+        docContent2.value = apiDocs.version2.content;
+        docVersion1.value = apiDocs.version1.name || document.getElementById('version1Input').value;
+        docVersion2.value = apiDocs.version2.name || document.getElementById('version2Input').value;
+        
+        modal.classList.remove('hidden');
+    }
+
+    function closeDocModal() {
+        document.getElementById('docModal').classList.add('hidden');
+    }
+
+    function loadDocumentation(version) {
+        openDocModal();
+        // Focus on the specific version's textarea
+        setTimeout(() => {
+            document.getElementById(`docContent${version}`).focus();
+        }, 100);
+    }
+
+    function loadSampleData() {
+        document.getElementById('docContent1').value = sampleDocs['v1.2.0'];
+        document.getElementById('docContent2').value = sampleDocs['v1.3.0'];
+        document.getElementById('docVersion1').value = 'v1.2.0';
+        document.getElementById('docVersion2').value = 'v1.3.0';
+    }
+
+    function saveDocumentation() {
+        const content1 = document.getElementById('docContent1').value.trim();
+        const content2 = document.getElementById('docContent2').value.trim();
+        const version1 = document.getElementById('docVersion1').value.trim() || 'Version 1';
+        const version2 = document.getElementById('docVersion2').value.trim() || 'Version 2';
+        
+        apiDocs.version1 = { name: version1, content: content1 };
+        apiDocs.version2 = { name: version2, content: content2 };
+        
+        // Update input fields
+        document.getElementById('version1Input').value = version1;
+        document.getElementById('version2Input').value = version2;
+        
+        updateComparison();
+        closeDocModal();
+    }
+
+    function updateVersionNames() {
+        const version1 = document.getElementById('version1Input').value;
+        const version2 = document.getElementById('version2Input').value;
+        
+        apiDocs.version1.name = version1;
+        apiDocs.version2.name = version2;
+        
+        document.getElementById('version1Title').textContent = `Version ${version1}`;
+        document.getElementById('version2Title').textContent = `Version ${version2}`;
+    }
+
+    function updateComparison() {
+        const version1 = apiDocs.version1.name || 'Version 1';
+        const version2 = apiDocs.version2.name || 'Version 2';
+        
+        document.getElementById('version1Title').textContent = `Version ${version1}`;
+        document.getElementById('version2Title').textContent = `Version ${version2}`;
+
+        const content1 = apiDocs.version1.content || '';
+        const content2 = apiDocs.version2.content || '';
+
+        if (currentView === 'split') {
+            renderSplitView(content1, content2, version1, version2);
+        } else {
+            renderUnifiedView(content1, content2, version1, version2);
+        }
+    }
+
+    function selectLine(version, line, content1, content2, v1, v2) {
+        if (version === null) {
+            // Unified view - select line in both versions
+            [v1, v2].forEach(v => {
+                const selectedLinesFromVersion = selectedLines[v] || [];
+                if (selectedLinesFromVersion.includes(line)) {
+                    selectedLines[v] = selectedLinesFromVersion.filter(sl => sl !== line);
+                } else {
+                    selectedLines[v] = [...selectedLinesFromVersion, line];
+                }
+            });
+        } else {
+            // Split view - select line in specific version
+            const selectedLinesFromVersion = selectedLines[version] || [];
+            if (selectedLinesFromVersion.includes(line)) {
+                selectedLines[version] = selectedLinesFromVersion.filter(sl => sl !== line);
+            } else {
+                selectedLines[version] = [...selectedLinesFromVersion, line];
+            }
+        }
+        updateComparison();
+    }
+
+    function renderSplitView(content1, content2, v1, v2) {
+        const lines1 = content1.split('\n');
+        const lines2 = content2.split('\n');
+        const diff = computeDiff(lines1, lines2);
+
+        const renderLines = (lines, version, diffMap, containerElement) => {
+            containerElement.innerHTML = '';
+            if (lines.length === 0 || (lines.length === 1 && lines[0] === '')) {
+                containerElement.innerHTML = '<div class="p-4 text-center text-gray-500"><p>No documentation loaded</p></div>';
+                return;
+            }
+
+            const fragment = document.createDocumentFragment();
+
+            lines.forEach((line, index) => {
+                const lineNum = index + 1;
+                const commentKey = `${version}-${lineNum}`;
+                const versionComments = comments[version] || {};
+                const lineComments = versionComments[lineNum] || [];
+                const commentCount = lineComments.length;
+                const highlightClass = diffMap[index] || '';
+
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = `
+                    <div class="flex ${highlightClass} w-full hover:bg-gray-50/50 group">
+                        <span class="line-number flex items-center ${commentCount > 0 ? "justify-between pl-3" : "justify-end"} w-[15%] md:w-[10%] bg-gray-100 text-gray-400 cursor-pointer pr-3 border-r-2 active:scale-105 transition group-hover:bg-gray-200">
+                            ${commentCount > 0 ? `<span class="comment-indicator w-3 h-3 mr-1 bg-blue-500 rounded-full text-white text-xs leading-3 cursor-pointer hover:bg-blue-600" onclick="openCommentViewer('${version}', ${lineNum})">${commentCount}</span>` : ''}
+                            ${lineNum}
+                        </span>
+                        <span class="diff-line flex-1 ml-3 py-1"></span>
+                    </div>
+                `;
+                
+                const lineNumEl = tempDiv.querySelector(".line-number");
+                lineNumEl.addEventListener("click", (e) => {
+                    if (!e.target.classList.contains('comment-indicator')) {
+                        selectLine(version, lineNum, content1, content2, v1, v2);
+                    }
+                });
+                
+                let versionSelectedLines = selectedLines[version] || [];
+                if (versionSelectedLines.includes(lineNum)) {
+                    lineNumEl.classList.add("bg-blue-100", "text-blue-600", "border-blue-400");
+                } else {
+                    lineNumEl.classList.add("hover:bg-blue-50", "hover:text-blue-500", "border-gray-300");
+                }
+
+                const row = tempDiv.firstElementChild;
+                const diffLineSpan = row.querySelector('.diff-line');
+
+                if (line.trim() === '') {
+                    diffLineSpan.innerHTML = '&nbsp;';
+                } else {
+                    const escapedLine = escapeHtml(line);
+                    try {
+                        const highlightedResult = hljs.highlight('markdown', escapedLine, true);
+                        diffLineSpan.innerHTML = highlightedResult.value;
+                    } catch (e) {
+                        diffLineSpan.textContent = line;
+                    }
+                }
+
+                fragment.appendChild(row);
+            });
+            containerElement.appendChild(fragment);
+        };
+
+        const v1Content = document.getElementById('version1Content');
+        const v2Content = document.getElementById('version2Content');
+        renderLines(lines1, v1, diff.map1, v1Content);
+        renderLines(lines2, v2, diff.map2, v2Content);
+    }
+
+    function renderUnifiedView(content1, content2, v1, v2) {
+        const lines1 = content1.split('\n');
+        const lines2 = content2.split('\n');
+        const unifiedDiff = createUnifiedDiff(lines1, lines2);
+        const container = document.getElementById('unifiedContent');
+        
+        if (unifiedDiff.length === 0) {
+            container.innerHTML = '<div class="p-4 text-center text-gray-500"><p>No documentation loaded</p></div>';
+            return;
+        }
+
+        const fragment = document.createDocumentFragment();
+        
+        unifiedDiff.forEach((item, index) => {
+            const lineNum = index + 1;
+            let marker = '';
+            let highlightClass = '';
+            let textColor = '';
+            
+            // Calculate comment count for this line across both versions
+            const v1Comments = comments[v1] || {};
+            const v2Comments = comments[v2] || {};
+            const commentCount = (v1Comments[lineNum] || []).length + (v2Comments[lineNum] || []).length;
+
+            if (item.type === 'added') {
+                marker = '<span class="unified-diff-marker added-marker font-bold">+</span>';
+                highlightClass = 'bg-green-50 border-l-4 border-green-400';
+                textColor = 'text-green-800';
+            } else if (item.type === 'removed') {
+                marker = '<span class="unified-diff-marker removed-marker font-bold">-</span>';
+                highlightClass = 'bg-red-50 border-l-4 border-red-400';
+                textColor = 'text-red-800';
+            } else {
+                marker = '<span class="unified-diff-marker text-gray-400">&nbsp;</span>';
+            }
+
+            const containerDiv = document.createElement("div");
+            containerDiv.innerHTML = `
+                <div class="flex ${highlightClass} items-center w-full hover:bg-gray-50/50 group">
+                    <div class="line-container flex items-center justify-end w-[15%] md:w-[9%] h-full py-2 bg-gray-100 text-gray-400 cursor-pointer pr-3 border-r-2 border-gray-300 group-hover:bg-gray-200 active:scale-105 transition">
+                        ${commentCount > 0 ? `<span class="ml-1 h-3 w-3 bg-blue-500 rounded-full mr-1 text-white text-xs leading-3 cursor-pointer hover:bg-blue-600" onclick="openCommentViewer('unified', ${lineNum})">${commentCount}</span>` : ""}
+                        ${marker}
+                        <span class="line-number ml-1">${lineNum}</span>
+                    </div>
+                    <span class="diff-line flex-1 ml-3 py-1 ${textColor}"></span>
+                </div>
+            `;
+
+            const lineNumEl = containerDiv.querySelector(".line-container");
+            lineNumEl.addEventListener("click", (e) => {
+                if (!e.target.classList.contains('comment-indicator')) {
+                    selectLine(null, lineNum, content1, content2, v1, v2);
+                }
+            });
+            
+            if (selectedLines[v1]?.includes(lineNum)) {
+                lineNumEl.classList.remove("hover:bg-gray-200", "border-gray-300");
+                lineNumEl.classList.add("bg-blue-100", "text-blue-600", "border-blue-400");
+            }
+
+            const row = containerDiv.firstElementChild;
+            const diffLine = containerDiv.querySelector(".diff-line");
+
+            if (item.line.trim() === '') {
+                diffLine.innerHTML = '&nbsp;';
+            } else {
+                const escapedLine = escapeHtml(item.line);
+                try {
+                    const highlightedResult = hljs.highlight('markdown', escapedLine, true);
+                    diffLine.innerHTML = highlightedResult.value;
+                } catch (e) {
+                    diffLine.textContent = item.line;
+                }
+            }
+            
+            fragment.appendChild(row);
+        });
+
+        container.innerHTML = '';
+        container.appendChild(fragment);
+    }
+
+    function computeDiff(lines1, lines2) {
+        const map1 = {};
+        const map2 = {};
+        const maxLen = Math.max(lines1.length, lines2.length);
+
+        for (let i = 0; i < maxLen; i++) {
+            if (i >= lines1.length) {
+                map2[i] = 'bg-green-50 border-l-4 border-green-400';
+            } else if (i >= lines2.length) {
+                map1[i] = 'bg-red-50 border-l-4 border-red-400';
+            } else if (lines1[i] !== lines2[i]) {
+                map1[i] = 'bg-yellow-50 border-l-4 border-yellow-400';
+                map2[i] = 'bg-yellow-50 border-l-4 border-yellow-400';
+            }
+        }
+
+        return {map1, map2};
+    }
+
+    function createUnifiedDiff(lines1, lines2) {
+        const result = [];
+        let i = 0, j = 0;
+        
+        while (i < lines1.length || j < lines2.length) {
+            if (i >= lines1.length) {
+                result.push({type: 'added', line: lines2[j]});
+                j++;
+            } else if (j >= lines2.length) {
+                result.push({type: 'removed', line: lines1[i]});
+                i++;
+            } else if (lines1[i] === lines2[j]) {
+                result.push({type: 'unchanged', line: lines1[i]});
+                i++;
+                j++;
+            } else {
+                // Look ahead to find matching lines
+                let found = false;
+                for (let k = 1; k < 3 && j + k < lines2.length; k++) {
+                    if (lines1[i] === lines2[j + k]) {
+                        for (let l = 0; l < k; l++) {
+                            result.push({type: 'added', line: lines2[j + l]});
+                        }
+                        j += k;
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found) {
+                    result.push({type: 'removed', line: lines1[i]});
+                    i++;
+                    if (j < lines2.length) {
+                        result.push({type: 'added', line: lines2[j]});
+                        j++;
+                    }
+                }
+            }
+        }
+
+        return result;
+    }
+
+    function toggleView() {
+        const splitView = document.getElementById('splitView');
+        const unifiedView = document.getElementById('unifiedView');
+        const viewToggle = document.getElementById('viewToggle');
+
+        selectedLines = {};
+
+        if (currentView === 'split') {
+            currentView = 'unified';
+            splitView.classList.add('hidden');
+            unifiedView.classList.remove('hidden');
+            viewToggle.textContent = 'Switch to Split View';
+        } else {
+            currentView = 'split';
+            splitView.classList.remove('hidden');
+            unifiedView.classList.add('hidden');
+            viewToggle.textContent = 'Switch to Unified View';
+        }
+
+        updateComparison();
+    }    function openCommentModal() {
+        const selectedVersions = Object.keys(selectedLines).filter(key => selectedLines[key].length > 0);
+        
+        if (selectedVersions.length === 0) {
+            showNotification('Please select line numbers by clicking on them first.');
+            return;
+        }
+
+        const modal = document.getElementById('commentModal');
+        const versionInfo = document.getElementById('commentVersionInfo');
+        const input = document.getElementById('commentInput');
+
+        versionInfo.innerHTML = '';
+
+        selectedVersions.forEach((key, index) => {
+            const lines = selectedLines[key];
+            const html = `
+                <span class="font-semibold">${key}: </span>
+                <span>Lines ${lines.join(', ')}</span>
+            `;
+            const container = document.createElement("div");
+            container.className = index === 0 ? "text-blue-600" : "text-purple-600";
+            container.innerHTML = html;
+            versionInfo.appendChild(container);
+        });
+
+        input.value = '';
+        modal.classList.remove('hidden');
+        input.focus();
+    }
+
+    function closeCommentModal() {
+        document.getElementById('commentModal').classList.add('hidden');
+    }    function saveComment() {
+        const input = document.getElementById('commentInput');
+        const comment = input.value.trim();
+        
+        if (!comment) {
+            showNotification('Please enter a comment.');
+            return;
+        }
+
+        Object.entries(selectedLines).forEach(([version, lines]) => {
+            if (lines.length > 0) {
+                if (!comments[version]) {
+                    comments[version] = {};
+                }
+                
+                lines.forEach(lineNum => {
+                    if (!comments[version][lineNum]) {
+                        comments[version][lineNum] = [];
+                    }
+                    comments[version][lineNum].push({
+                        text: comment,
+                        timestamp: new Date().toISOString(),
+                        id: Date.now() + Math.random()
+                    });
+                });
+            }
+        });
+
+        selectedLines = {};
+        updateComparison();
+        closeCommentModal();
+        showNotification('Comment added successfully!', 'success');
+    }
+
+    function openCommentViewer(version, lineNum) {
+        currentCommentViewerVersion = version;
+        currentCommentViewerLine = lineNum;
+        
+        const modal = document.getElementById('commentViewerModal');
+        const info = document.getElementById('commentViewerInfo');
+        const commentsList = document.getElementById('commentsList');
+        
+        if (version === 'unified') {
+            info.textContent = `Comments for Line ${lineNum} (All Versions)`;
+            // Show comments from both versions for unified view
+            const allComments = [];
+            Object.keys(comments).forEach(v => {
+                const versionComments = comments[v] || {};
+                const lineComments = versionComments[lineNum] || [];
+                lineComments.forEach(comment => {
+                    allComments.push({...comment, version: v});
+                });
+            });
+            renderCommentsList(allComments, commentsList);
+        } else {
+            info.textContent = `Comments for ${version} - Line ${lineNum}`;
+            const versionComments = comments[version] || {};
+            const lineComments = versionComments[lineNum] || [];
+            renderCommentsList(lineComments, commentsList);
+        }
+        
+        modal.classList.remove('hidden');
+        document.getElementById('newCommentInput').focus();
+    }
+
+    function renderCommentsList(commentList, container) {
+        container.innerHTML = '';
+        
+        if (commentList.length === 0) {
+            container.innerHTML = '<p class="text-gray-500 text-sm">No comments yet.</p>';
+            return;
+        }
+        
+        commentList.forEach(comment => {
+            const commentDiv = document.createElement('div');
+            commentDiv.className = 'bg-gray-50 rounded-lg p-3 border border-gray-200';
+            commentDiv.innerHTML = `
+                <div class="flex justify-between items-start mb-2">
+                    <span class="text-xs text-gray-500">${comment.version ? comment.version + ' - ' : ''}${new Date(comment.timestamp).toLocaleString()}</span>
+                    <button onclick="deleteComment('${comment.id}')" class="text-red-500 hover:text-red-700 text-xs">Delete</button>
+                </div>
+                <p class="text-sm text-gray-800">${escapeHtml(comment.text)}</p>
+            `;
+            container.appendChild(commentDiv);
+        });
+    }
+
+    function addNewComment() {
+        const input = document.getElementById('newCommentInput');
+        const comment = input.value.trim();
+        
+        if (!comment) return;
+        
+        const newComment = {
+            text: comment,
+            timestamp: new Date().toISOString(),
+            id: Date.now() + Math.random()
+        };
+        
+        if (currentCommentViewerVersion === 'unified') {
+            // Add to both versions for unified view
+            [apiDocs.version1.name, apiDocs.version2.name].forEach(version => {
+                if (!comments[version]) comments[version] = {};
+                if (!comments[version][currentCommentViewerLine]) comments[version][currentCommentViewerLine] = [];
+                comments[version][currentCommentViewerLine].push({...newComment});
+            });
+        } else {
+            if (!comments[currentCommentViewerVersion]) comments[currentCommentViewerVersion] = {};
+            if (!comments[currentCommentViewerVersion][currentCommentViewerLine]) comments[currentCommentViewerVersion][currentCommentViewerLine] = [];
+            comments[currentCommentViewerVersion][currentCommentViewerLine].push(newComment);
+        }
+        
+        input.value = '';
+        openCommentViewer(currentCommentViewerVersion, currentCommentViewerLine); // Refresh the view
+        updateComparison();
+    }
+
+    function deleteComment(commentId) {
+        Object.keys(comments).forEach(version => {
+            Object.keys(comments[version]).forEach(lineNum => {
+                comments[version][lineNum] = comments[version][lineNum].filter(comment => comment.id !== commentId);
+                if (comments[version][lineNum].length === 0) {
+                    delete comments[version][lineNum];
+                }
+            });
+        });
+        
+        openCommentViewer(currentCommentViewerVersion, currentCommentViewerLine); // Refresh the view
+        updateComparison();
+    }    function closeCommentViewer() {
+        document.getElementById('commentViewerModal').classList.add('hidden');
+        document.getElementById('newCommentInput').value = '';
+    }
+
+    function showNotification(message, type = 'warning') {
+        const notification = document.getElementById('customNotification');
+        const notificationText = document.getElementById('notificationText');
+        
+        notificationText.textContent = message;
+        
+        // Update styling based on type
+        notification.className = `fixed top-4 right-4 text-white px-6 py-4 rounded-lg shadow-2xl border z-[60] max-w-sm notification`;
+        
+        if (type === 'success') {
+            notification.classList.add('bg-gradient-to-r', 'from-green-500', 'to-emerald-600', 'border-green-400');
+        } else if (type === 'error') {
+            notification.classList.add('bg-gradient-to-r', 'from-red-500', 'to-red-600', 'border-red-400');
+        } else {
+            notification.classList.add('bg-gradient-to-r', 'from-orange-500', 'to-red-500', 'border-orange-400');
+        }
+        
+        notification.classList.remove('hidden');
+        
+        // Auto-hide after 4 seconds
+        setTimeout(() => {
+            hideNotification();
+        }, 4000);
+    }
+
+    function hideNotification() {
+        const notification = document.getElementById('customNotification');
+        notification.classList.add('hide');
+        
+        setTimeout(() => {
+            notification.classList.add('hidden');
+            notification.classList.remove('hide');
+        }, 300);
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // Event listeners for modals
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeCommentModal();
+            closeDocModal();
+            closeCommentViewer();
+        }
+    });
+
+    // Close modals on background click
+    ['commentModal', 'docModal', 'commentViewerModal'].forEach(modalId => {
+        document.getElementById(modalId).addEventListener('click', (e) => {
+            if (e.target.id === modalId) {
+                if (modalId === 'commentModal') closeCommentModal();
+                else if (modalId === 'docModal') closeDocModal();
+                else if (modalId === 'commentViewerModal') closeCommentViewer();
+            }
+        });
+    });
+</script>
+</body>
+</html>
